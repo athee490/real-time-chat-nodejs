@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        #messages {
+            flex: 1;
+            overflow-y: auto;
+            border: 1px solid #ccc;
+            padding: 10px;
+        }
+        form {
+            display: flex;
+            padding: 10px;
+        }
+        input {
+            flex: 1;
+            padding: 10px;
+            margin-right: 10px;
+        }
+        button {
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="messages"></div>
+    <form id="chat-form">
+        <input id="message" autocomplete="off" placeholder="Type a message..." />
+        <button>Send</button>
+    </form>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+    const socket = io();
+
+const form = document.getElementById('chat-form');
+const input = document.getElementById('message');
+const messages = document.getElementById('messages');
+
+form.addEventListener('submit', (event) => {
+    event.preventDefault();
+    if (input.value) {
+        const message = { text: input.value, sender: socket.id };
+        addMessage(message, true); // Add the message locally for the sender
+        socket.emit('chat message', message); // Send to the server
+        input.value = '';
+    }
+});
+
+socket.on('chat message', (message) => {
+    if (message.sender !== socket.id) { 
+        // Only add messages from others
+        addMessage(message, false);
+    }
+});
+
+function addMessage(message, isSender) {
+    const item = document.createElement('div');
+    item.textContent = message.text;
+    item.classList.add('message', isSender ? 'sent' : 'received');
+    messages.appendChild(item);
+    messages.scrollTop = messages.scrollHeight;
+}
+    </script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+    
+        #messages {
+            flex: 1;
+            overflow-y: auto;
+            border: 1px solid #ccc;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+        }
+    
+        .message {
+            max-width: 70%;
+            margin: 5px;
+            padding: 10px;
+            border-radius: 10px;
+            word-wrap: break-word;
+        }
+    
+        .sent {
+            background-color: #dcf8c6;
+            align-self: flex-end;
+        }
+    
+        .received {
+            background-color: #f1f0f0;
+            align-self: flex-start;
+        }
+    
+        form {
+            display: flex;
+            padding: 10px;
+        }
+    
+        input {
+            flex: 1;
+            padding: 10px;
+            margin-right: 10px;
+        }
+    
+        button {
+            padding: 10px;
+        }
+    </style>
+</body>
+</html>
